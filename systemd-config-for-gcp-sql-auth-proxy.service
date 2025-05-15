@@ -1,0 +1,32 @@
+[Unit]
+Description=Google Cloud SQL Auth Proxy
+After=network.target
+
+[Service]
+# Replace with the user you want to run the proxy as.
+# It's good practice not to use root if not strictly necessary.
+# You might need to create a dedicated user or use an existing non-root user.
+# If the proxy needs to write logs or pid files to specific locations,
+# ensure this user has permissions. For simplicity, you can start with your own user
+# or root, but consider a dedicated service account for better security.
+User=root # Or your non-root user e.g., your-username
+# Alternatively, create a dedicated service user:
+# sudo useradd -r -s /bin/false cloudsqlproxyuser
+# User=cloudsqlproxyuser
+
+# The command to start the proxy.
+# Adjust --port if you need a different one.
+# Add --credentials-file=/path/to/your/service-account-key.json if you are using a JSON key
+# instead of the VM's default service account. Using the VM's service account is often simpler.
+ExecStart=/usr/local/bin/cloud-sql-proxy --address 0.0.0.0 --port 5432 <GCP_PROJECT_ID>:<GCP_REGION>:<GCP_CLOUD_SQL_INSTANCE_ID>
+
+# Restart the service if it fails
+Restart=always
+RestartSec=5
+
+# Standard output and error logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
