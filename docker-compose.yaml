@@ -42,10 +42,13 @@ services:
       - traefik.http.middlewares.n8n.headers.STSPreload=true
       - traefik.http.routers.n8n.middlewares=n8n@docker
     environment:
+      # We can check all variables here
+      # https://docs.n8n.io/hosting/configuration/environment-variables/
       - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true # Automatically enforce correct permissions
+      - N8N_RUNNERS_ENABLED=true # Enable task runners https://docs.n8n.io/hosting/configuration/task-runners/
       - NODE_ENV=production
       - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE_VALUE}
