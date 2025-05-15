@@ -47,7 +47,7 @@ services:
       - N8N_PROTOCOL=https
       - NODE_ENV=production
       - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE_VALUE}
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_DATABASE=streampot
       - DB_POSTGRESDB_HOST=host.docker.internal # internal host VM ip
