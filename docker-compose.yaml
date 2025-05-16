@@ -65,7 +65,7 @@ services:
       - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER_VALUE}
       - DB_POSTGRESDB_SCHEMA=${DB_POSTGRESDB_SCHEMA_VALUE}
       - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD_VALUE}
-      - N8N_LOG_LEVEL=trace # verbose logs to debug 403s
+      - N8N_LOG_LEVEL=debug # verbose logs to debug 403s
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
@@ -73,9 +73,11 @@ services:
   n8n-runner:
     image: docker.n8n.io/n8nio/n8n:latest
     restart: always
-    command: ["/usr/local/bin/task-runner-launcher", "javascript"] # launcher command
+    entrypoint: ["/usr/local/bin/task-runner-launcher"]
+    command: ["javascript"]
     environment:
       - N8N_RUNNERS_MODE=external
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_RUNNERS_AUTH_TOKEN=${RUNNER_AUTH_TOKEN}
       - N8N_RUNNERS_TASK_BROKER_URI=http://n8n:5679 # points to broker over Docker network
       - N8N_RUNNERS_MAX_CONCURRENCY=5
