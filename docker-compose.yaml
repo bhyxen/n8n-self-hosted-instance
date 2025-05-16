@@ -49,6 +49,11 @@ services:
       - N8N_PROTOCOL=https
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true # Automatically enforce correct permissions
       - N8N_RUNNERS_ENABLED=true # Enable task runners https://docs.n8n.io/hosting/configuration/task-runners/
+      - N8N_RUNNERS_MODE=internal
+      - N8N_RUNNERS_MAX_CONCURRENCY=5
+      - N8N_RUNNERS_TASK_TIMEOUT=60
+      - N8N_RUNNERS_HEARTBEAT_INTERVAL=30
+      - EXECUTIONS_MODE=regular
       - NODE_ENV=production
       - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE_VALUE}
