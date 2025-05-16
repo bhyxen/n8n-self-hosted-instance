@@ -14,9 +14,8 @@ services:
       - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
       - "--certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}"
       - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
-      - "--log.level=DEBUG" # Add for more detailed Traefik logs
-      - "--accesslog=true" # Add to enable access logs (will go to container stdout)
-      # You can also specify a file: --accesslog.filepath=/path/to/access.log --accesslog.format=json
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
     ports:
       - "80:80"
       - "443:443"
@@ -25,17 +24,18 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
   n8n:
-    image: docker.n8n.io/n8nio/n8n
+    image: docker.n8n.io/n8nio/n8n:latest
     restart: always
     ports:
-      - "127.0.0.1:5678:5678" # n8n API/Webhooks
-      - "127.0.0.1:5679:5679" # <— add this so the internal task broker is reachable
+      - "127.0.0.1:5678:5678" # API & webhooks
+      - "127.0.0.1:5679:5679" # broker for external runners
     labels:
       - traefik.enable=true
       - traefik.http.routers.n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
       - traefik.http.routers.n8n.tls=true
       - traefik.http.routers.n8n.entrypoints=web,websecure
       - traefik.http.routers.n8n.tls.certresolver=mytlschallenge
+      - traefik.http.routers.n8n.middlewares=n8n@docker
       - traefik.http.middlewares.n8n.headers.SSLRedirect=true
       - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
       - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
@@ -44,20 +44,16 @@ services:
       - traefik.http.middlewares.n8n.headers.SSLHost=${DOMAIN_NAME}
       - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
       - traefik.http.middlewares.n8n.headers.STSPreload=true
-      - traefik.http.routers.n8n.middlewares=n8n@docker
     environment:
       - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
-      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true # Automatically enforce correct permissions
-      - N8N_RUNNERS_ENABLED=true # Enable task runners https://docs.n8n.io/hosting/configuration/task-runners/
-      - N8N_RUNNERS_MODE=internal
-      - N8N_RUNNERS_MAX_CONCURRENCY=5
-      - N8N_RUNNERS_TASK_TIMEOUT=60
-      - N8N_RUNNERS_HEARTBEAT_INTERVAL=30
-      - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=0.0.0.0 # <— add this so broker listens on Docker network
-      - N8N_RUNNERS_BROKER_PORT=5679 # <— explicit (default) broker port
-      - N8N_RUNNERS_TASK_BROKER_URI=http://127.0.0.1:5679 # <— explicit (default) broker URI
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_RUNNERS_MODE=external # external mode
+      - N8N_RUNNERS_AUTH_TOKEN=${RUNNER_AUTH_TOKEN} # shared secret
+      - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=0.0.0.0 # broker binds everywhere
+      - N8N_RUNNERS_BROKER_PORT=5679
       - EXECUTIONS_MODE=regular
       - NODE_ENV=production
       - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
@@ -69,9 +65,24 @@ services:
       - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER_VALUE}
       - DB_POSTGRESDB_SCHEMA=${DB_POSTGRESDB_SCHEMA_VALUE}
       - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD_VALUE}
+      - N8N_LOG_LEVEL=trace # verbose logs to debug 403s
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
+
+  n8n-runner:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: always
+    command: ["/usr/local/bin/task-runner-launcher", "javascript"] # launcher command
+    environment:
+      - N8N_RUNNERS_MODE=external
+      - N8N_RUNNERS_AUTH_TOKEN=${RUNNER_AUTH_TOKEN}
+      - N8N_RUNNERS_TASK_BROKER_URI=http://n8n:5679 # points to broker over Docker network
+      - N8N_RUNNERS_MAX_CONCURRENCY=5
+      - N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT=0 # keep runner always up
+      - N8N_LOG_LEVEL=debug # runner‑side logs
+    depends_on:
+      - n8n
 
 volumes:
   n8n_data:
