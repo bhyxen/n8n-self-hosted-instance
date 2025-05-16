@@ -14,6 +14,9 @@ services:
       - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
       - "--certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}"
       - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=DEBUG" # Add for more detailed Traefik logs
+      - "--accesslog=true" # Add to enable access logs (will go to container stdout)
+      # You can also specify a file: --accesslog.filepath=/path/to/access.log --accesslog.format=json
     ports:
       - "80:80"
       - "443:443"
