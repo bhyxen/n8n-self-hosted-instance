@@ -102,8 +102,4 @@ services:
 
 volumes:
   n8n_data:
-    driver_opts:
-      o: bind
-      type: none
-      device: ./n8n_data
   traefik_data:
