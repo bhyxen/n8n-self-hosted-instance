@@ -29,8 +29,8 @@ services:
     image: docker.n8n.io/n8nio/n8n:latest
     restart: always
     ports:
-      - "127.0.0.1:5678:5678"
-      - "127.0.0.1:5679:5679"
+      - "127.0.0.1:5678:5678" # API & webhooks
+      - "127.0.0.1:5679:5679" # runner broker
     labels:
       - traefik.enable=true
       - traefik.http.routers.n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
@@ -68,6 +68,8 @@ services:
       - DB_POSTGRESDB_SCHEMA=${DB_POSTGRESDB_SCHEMA_VALUE}
       - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD_VALUE}
       - N8N_LOG_LEVEL=debug
+      - N8N_METRICS=true # enable /metrics endpoint
+      - QUEUE_HEALTH_CHECK_ACTIVE=true # enable /healthz and /healthz/readiness
     volumes:
       - n8n_data:/home/node/.n8n
       - ./local-files:/files
