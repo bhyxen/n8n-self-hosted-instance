@@ -51,6 +51,13 @@ services:
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
       - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - N8N_METRICS=true
+
+      # Execution Mode
+      - EXECUTIONS_MODE=queue # enable queue mode :contentReference[oaicite:1]{index=1}
+      - QUEUE_BULL_REDIS_HOST=redis # Redis hostname :contentReference[oaicite:2]{index=2}
+      - QUEUE_BULL_REDIS_PORT=6379 # Redis port :contentReference[oaicite:3]{index=3}
+      - QUEUE_HEALTH_CHECK_ACTIVE=true # enable /healthz endpoints on queue workers :contentReference[oaicite:4]{index=4}
 
       # Database
       - DB_TYPE=postgresdb
@@ -77,6 +84,8 @@ services:
       - ./local-files:/files
     networks:
       - n8n-net
+    depends_on:
+      - redis
 
   n8n-runner:
     image: docker.n8n.io/n8nio/n8n:latest
@@ -92,6 +101,12 @@ services:
       - N8N_RUNNERS_MAX_CONCURRENCY=5
       - N8N_RUNNERS_AUTO_SHUTDOWN_TIMEOUT=0
       - N8N_LOG_LEVEL=debug
+    networks:
+      - n8n-net
+
+  redis:
+    image: redis:7-alpine
+    restart: always
     networks:
       - n8n-net
 
