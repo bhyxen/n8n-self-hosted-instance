@@ -26,7 +26,7 @@ services:
       - n8n-net
 
   n8n:
-    image: docker.n8n.io/n8nio/n8n:1.83.2
+    image: docker.n8n.io/n8nio/n8n:latest
     restart: always
     ports:
       - "127.0.0.1:5678:5678" # Expose only the web UI/API
@@ -64,7 +64,7 @@ services:
       - DB_POSTGRESDB_SCHEMA=${DB_POSTGRESDB_SCHEMA_VALUE}
 
       # Task runners
-      - N8N_RUNNERS_ENABLED=true
+      - N8N_RUNNERS_ENABLED=false # disabled due to constant "Task runner connection attempt failed with status code 403" errors
 
       # Permissions & logging
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
