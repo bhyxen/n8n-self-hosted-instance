@@ -28,7 +28,6 @@ services:
     restart: always
     ports:
       - "5678:5678"
-      - "5679:5679" # Internal task broker is reachable
     labels:
       - traefik.enable=true
       - traefik.http.routers.n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
@@ -67,6 +66,10 @@ services:
       - N8N_RUNNERS_TASK_TIMEOUT=60
       - N8N_RUNNERS_HEARTBEAT_INTERVAL=30
       - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=0.0.0.0
+      - N8N_RUNNERS_BROKER_URL=http://localhost:5679
+      - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=127.0.0.1 # explicit, default is 127.0.0.1
+      - N8N_RUNNERS_BROKER_PORT=5679 # explicit, default is 5679
+      - N8N_RUNNERS_TASK_BROKER_URI=ws://127.0.0.1:5679
 
       # Proxy
       - N8N_TRUST_PROXY=true
